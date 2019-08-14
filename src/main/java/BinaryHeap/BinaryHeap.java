@@ -1,5 +1,7 @@
 package BinaryHeap;
 
+import BinaryHeap.Exceptions.EmptyHeapException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -39,8 +41,8 @@ public class BinaryHeap<T extends Comparable<T>> {
      * @param t the array we want to add to the heap
      */
     public void add(T[] t){
-        for (int i = 0; i < t.length; i++){
-            add(t[i]);
+        for (T value : t) {
+            add(value);
         }
     }
 
@@ -56,11 +58,7 @@ public class BinaryHeap<T extends Comparable<T>> {
      * Removes and returns the top element of the heap.
      * @return object removed from heap
      */
-    public T poll(){
-        if (heap.size() == 0)
-            throw new NullPointerException();
-        return removeAt(0);
-    }
+    public T poll(){ return removeAt(0); }
 
     /**
      * Finds and removes object t from heap.
@@ -76,13 +74,15 @@ public class BinaryHeap<T extends Comparable<T>> {
 
     public String toString(){
         StringBuilder builder = new StringBuilder();
-        heap.forEach( (h) -> {
-            builder.append(h.toString());
-            if (h != heap.get(heap.size()-1))
+        for (int i = 0; i < size(); i++){
+            builder.append(heap.get(i).toString());
+            if(i != size()-1)
                 builder.append(", ");
-        });
+        }
         return builder.toString();
     }
+
+    public boolean isEmpty(){ return heap.size() == 0; }
 
     public int size(){
         return heap.size();
@@ -96,6 +96,8 @@ public class BinaryHeap<T extends Comparable<T>> {
     private int leftChildOf(int i){
         if (i < 0)
             throw new IllegalArgumentException("Index can't be negative.");
+        else if (isEmpty())
+            throw new EmptyHeapException();
         else if (i >= heap.size() || 2*i + 1 >= heap.size())
             throw new IndexOutOfBoundsException();
         else
@@ -110,6 +112,8 @@ public class BinaryHeap<T extends Comparable<T>> {
     private int rightChildOf(int i){
         if (i < 0)
             throw new IllegalArgumentException("Index can't be negative.");
+        else if (isEmpty())
+            throw new EmptyHeapException();
         else if (i >= heap.size() || 2*i + 2 >= heap.size())
             throw new IndexOutOfBoundsException();
         else
@@ -122,34 +126,28 @@ public class BinaryHeap<T extends Comparable<T>> {
      * @return Removed object
      */
     private T removeAt(int i){
-        if (i < 0)
-            throw new IllegalArgumentException("Index can't be negative.");
-        else if (i >= heap.size())
-            throw new IndexOutOfBoundsException();
-        else{
-            T t = heap.get(i);
-            swap(i, heap.size()-1);
-            heap.remove(heap.size()-1);
+        if (isEmpty())
+            throw new EmptyHeapException();
+        T t = heap.get(swap(i, heap.size()-1));
+        heap.remove(heap.size()-1);
 
-            //If there is no more elements in heap no need to do the following...
-            if (heap.size() != 0){
-                while (failsHeapInvarianceUp(i))
-                    i = swap(i, parentOf(i));
+        //If there is no more elements left in heap, no need to do the following...
+        if (!isEmpty()){
+            while (failsHeapInvarianceUp(i))
+                i = swap(i, parentOf(i));
 
-                while (failsHeapInvarianceLeft(i) || failsHeapInvarianceRight(i)){
-                    //If both children fail heap invariance we always choose the minimum of two.
-                    //Note that minimumOfChildren returns left child by default if both children are equal.
-                    if (failsHeapInvarianceLeft(i) && failsHeapInvarianceRight(i))
-                        i = swap(i, minimumOfChildren(i));
-                    else if (failsHeapInvarianceLeft(i))
-                        i = swap(i, leftChildOf(i));
-                    else
-                        i = swap(i, rightChildOf(i));
-                }
+            while (failsHeapInvarianceLeft(i) || failsHeapInvarianceRight(i)){
+                //If both children fail heap invariance we always choose the minimum of two.
+                //Note that minimumOfChildren returns left child by default if both children are equal.
+                if (failsHeapInvarianceLeft(i) && failsHeapInvarianceRight(i))
+                    i = swap(i, minimumOfChildren(i));
+                else if (failsHeapInvarianceLeft(i))
+                    i = swap(i, leftChildOf(i));
+                else
+                    i = swap(i, rightChildOf(i));
             }
-
-            return t;
         }
+        return t;
     }
 
     /**
@@ -160,6 +158,8 @@ public class BinaryHeap<T extends Comparable<T>> {
     private int parentOf(int i) {
         if (i < 0)
             throw new IllegalArgumentException("Index can't be negative.");
+        else if (isEmpty())
+            throw new EmptyHeapException();
         else if (i >= heap.size())
             throw new IndexOutOfBoundsException();
         else if( i == 0 )
@@ -188,6 +188,8 @@ public class BinaryHeap<T extends Comparable<T>> {
     private boolean failsHeapInvarianceUp(int i) {
         if (i < 0)
             throw new IllegalArgumentException("Index can't be negative.");
+        else if (isEmpty())
+            throw new EmptyHeapException();
         else if (i >= heap.size())
             throw new IndexOutOfBoundsException();
         //the top element always satisfies it
@@ -205,6 +207,8 @@ public class BinaryHeap<T extends Comparable<T>> {
     private boolean failsHeapInvarianceLeft(int i) {
         if (i < 0)
             throw new IllegalArgumentException("Index can't be negative.");
+        else if (isEmpty())
+            throw new EmptyHeapException();
         else if (i >= heap.size())
             throw new IndexOutOfBoundsException();
         //If left children does not exist, it satisfies heap invariance
@@ -222,6 +226,8 @@ public class BinaryHeap<T extends Comparable<T>> {
     private boolean failsHeapInvarianceRight(int i) {
         if (i < 0)
             throw new IllegalArgumentException("Index can't be negative.");
+        else if (isEmpty())
+            throw new EmptyHeapException();
         else if (i >= heap.size())
             throw new IndexOutOfBoundsException();
         //If right children does not exist, it satisfies the heap invariance
@@ -240,6 +246,8 @@ public class BinaryHeap<T extends Comparable<T>> {
     private int swap(int i, int j) {
         if (i < 0 || j < 0)
             throw new IllegalArgumentException("Index can't be negative.");
+        else if (isEmpty())
+            throw new EmptyHeapException();
         else if (i >= heap.size() || j >= heap.size())
             throw new IndexOutOfBoundsException();
         else if (i != j){
